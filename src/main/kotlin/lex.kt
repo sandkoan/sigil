@@ -1,3 +1,5 @@
+import kotlin.Error
+
 enum class Intrinsic {
     IF,
     ADD, NEG, MUL, INV, REM,
@@ -17,32 +19,69 @@ sealed class Lexeme {
 
 sealed class State {
     object Default : State()
-    data class Number(val str: String) : State()
-    data class String(val str: String, val line: Int, val bool: Boolean) : State()
-    data class Ident(val str: String) : State()
+    data class Number(var num: String) : State()
+    data class Str(var s: String, val sline: Int, var escaped: Boolean) : State()
+    data class Ident(var id: String) : State()
 }
 
 data class Token(val l: Lexeme)
 
 fun lex(code: String): Result<ArrayList<Token>> {
-    var tokens  = ArrayList<Token>()
-    var chars = code.toList()
-    var state = State.Default
+    var tokens = ArrayList<Token>()
+    val chars = code.toList()
+    var state: State = State.Default
+
     var line = 1
 
     val iter = chars.listIterator()
     while (iter.hasNext()) {
-        var c = iter.next()
+        val c = iter.next()
         var incr = true
 
-        when(sate) {
-            State.Default -> when (c) {
-                0 -> break,
-
+        when (state) {
+            is State.Default -> when {
+                c == '\u0000' -> break
+                c.isWhitespace() -> {
+                }
+                c == '"' -> state = State.Str("", line, false)
+                c.isDigit() -> state = State.Number("")
+                else -> state = State.Ident("")
+            }
+            is State.Number -> when {
+                c.isWhitespace() -> {
+                    incr = false
+                    state = State.Default
+                }
+                c.isDigit() -> state.num += c
+                else -> state = State.Default
+            }
+            is State.Str -> when {
+                c == '\\' && !state.escaped -> state.escaped = true
+                c == '\u0000' -> return Result.failure(Error("Unexpected null character at ${state.sline}!"))
+                c.isWhitespace() -> {
+                    incr = false
+                    state = State.Default
+                }
+                !state.escaped -> {state.s += c
+                    if (c == 'n')
+                        state.s += '\n'
+                    else
+                        return Result.failure(Error("Invalid escape sequence \\$c at $line"))}
+                else -> state = State.Default
+            }
+            is State.Ident -> when {
+                c.isWhitespace() -> {
+                    incr = false
+                    state = State.Default
+                    tokens.add(Token(Lexeme.Ident(state.id)))
+                }
+                c.isLetter() -> state.id += c
+                else -> state = State.Default
             }
         }
-
+        if (incr && iter.next() == '\n') {
+            line++
+        }
     }
-
-
+    return Result.success(tokens)
 }
