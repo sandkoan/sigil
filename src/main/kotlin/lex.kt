@@ -50,6 +50,7 @@ fun lex(code: String): Result<ArrayList<Token>> {
             is State.Number -> when {
                 c.isWhitespace() -> {
                     incr = false
+                    tokens.add(Token(Lexeme.Ident(state.num)))
                     state = State.Default
                 }
                 c.isDigit() -> state.num += c
@@ -60,6 +61,7 @@ fun lex(code: String): Result<ArrayList<Token>> {
                 c == '\u0000' -> return Result.failure(Error("Unexpected null character at ${state.sline}!"))
                 c.isWhitespace() -> {
                     incr = false
+                    tokens.add(Token(Lexeme.Ident(state.s)))
                     state = State.Default
                 }
                 !state.escaped -> {state.s += c
@@ -72,8 +74,8 @@ fun lex(code: String): Result<ArrayList<Token>> {
             is State.Ident -> when {
                 c.isWhitespace() -> {
                     incr = false
-                    state = State.Default
                     tokens.add(Token(Lexeme.Ident(state.id)))
+                    state = State.Default
                 }
                 c.isLetter() -> state.id += c
                 else -> state = State.Default
