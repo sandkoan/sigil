@@ -1,3 +1,3 @@
 
-rootProject.name = "atto"
+rootProject.name = "sigil"
 

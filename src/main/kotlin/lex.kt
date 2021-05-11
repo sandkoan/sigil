@@ -1,5 +1,7 @@
 import kotlin.Error
 
+import Intrinsic as Intrins
+
 enum class Intrinsic {
     IF,
     ADD, NEG, MUL, INV, REM,
@@ -12,7 +14,7 @@ enum class Intrinsic {
 sealed class Lexeme {
     object Fn : Lexeme()
     object Is : Lexeme()
-    data class Intrinsic(val intrins: Intrinsic) : Lexeme()
+    data class Intrinsic(val intrins: Intrins) : Lexeme()
     data class Ident(val str: String) : Lexeme()
     data class Value(val str: String) : Lexeme()
 }
@@ -64,11 +66,9 @@ fun lex(code: String): Result<ArrayList<Token>> {
                     tokens.add(Token(Lexeme.Ident(state.s)))
                     state = State.Default
                 }
-                !state.escaped -> {state.s += c
-                    if (c == 'n')
-                        state.s += '\n'
-                    else
-                        return Result.failure(Error("Invalid escape sequence \\$c at $line"))}
+                !state.escaped -> state.s += c
+                c == 'n' -> state.s += '\n'
+                c != 'n' -> return Result.failure(Error("Invalid escape sequence \\$c at $line"))
                 else -> state = State.Default
             }
             is State.Ident -> when {
