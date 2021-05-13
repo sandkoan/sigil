@@ -13,12 +13,12 @@ repositories {
 }
 
 dependencies {
-    implementation("org.junit.jupiter:junit-jupiter:5.7.0")
-    testImplementation(kotlin("test-junit"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
-tasks.test {
-    useJUnit()
+tasks.named<Test>("test") {
+    useJUnitPlatform()
 }
 
 tasks.withType<KotlinCompile> {
