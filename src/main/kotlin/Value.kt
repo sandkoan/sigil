@@ -34,7 +34,7 @@ sealed class Value {
                     } catch (e: NumberFormatException) {
                     }
 
-                    if (s.iterator().nextChar() == '"') {
+                    if (s.indexOf("\"") == 0 && s.lastIndexOf("\"") == s.length - 1) {
 //                        return Result.success(Str(s.substring(1)))
                         return Result.success(Str(s.substring(1, s.length - 1)))
                     }
