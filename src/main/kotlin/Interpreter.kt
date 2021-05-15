@@ -11,7 +11,7 @@ sealed class Error {
 data class Func(val args: ArrayList<String>, val expr: Expr)
 
 fun input(msg: String): Value {
-    print(msg)
+    println(msg)
     System.out.flush()
 
     val input = readLine()!!.replace("\n", "")
@@ -19,13 +19,11 @@ fun input(msg: String): Value {
 }
 
 fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
-    when (expr) {
-        is Expr.If -> {
-            if (eval(expr.cond, funcs, args) == Value.Bool(true)) {
-                eval(expr.t, funcs, args)
-            } else {
-                eval(expr.f, funcs, args)
-            }
+    return when (expr) {
+        is Expr.If -> if (eval(expr.cond, funcs, args) == Value.Bool(true)) {
+            eval(expr.t, funcs, args)
+        } else {
+            eval(expr.f, funcs, args)
         }
         is Expr.Eq -> Value.Bool(eval(expr.x, funcs, args) == eval(expr.y, funcs, args))
         is Expr.Add -> {
@@ -71,13 +69,13 @@ fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
             else if (a is Value.Str && b is Value.Str) Value.Bool(a.s <= b.s)
             else Value.Null
         }
-        is Expr.Head -> {
-            when (val items = eval(expr.h, funcs, args)) {
-                is Value.List -> items.l.elementAtOrElse(0) { Value.Null }
-                is Value.Str -> if (items.s.isNotEmpty()) Value.Str(items.s[0].toString())
-                else -> Value.Null
-            }
-        }
+//        is Expr.Head -> {
+//            when (val items = eval(expr.h, funcs, args)) {
+//                is Value.List -> items.l.elementAtOrElse(0) { Value.Null }
+//                is Value.Str -> if (items.s.isNotEmpty()) Value.Str(items.s[0].toString())
+//                else -> Value.Null
+//            }
+//        }
 //        is Expr.Tail -> {
 //            when (val items = eval(expr.t, funcs, args)) {
 //                is Value.List -> items.l.drop(1).forEach()
@@ -90,31 +88,65 @@ fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
         is Expr.Call -> {
             val f = funcs[expr.f]
             if (f != null) {
-                eval(f.expr, funcs, expr.params.map { eval(it, funcs, args) } as ArrayList<Value>)
+                eval(f.expr, funcs, expr.params.map { eval(it, funcs, args) })
             } else {
                 Value.Null
             }
         }
-        is Expr.Words -> {
+//        is Expr.Words -> {
+//            when (val s = eval(expr.x, funcs, args)) {
+//
+//            }
+//        }
+        is Expr.Litr -> {
             when (val s = eval(expr.x, funcs, args)) {
-                Value.List(words(s).)
+                is Value.Str -> Value.of(s.s).getOrDefault(Value.Null)
+                else -> Value.Null
             }
         }
-
+        is Expr.Input -> input(eval(expr.x, funcs, args).toString())
+        is Expr.Print -> {
+            val v = eval(expr.x, funcs, args)
+            println(v.toString())
+            v
+        }
+        is Expr.Str -> Value.Str(eval(expr.x, funcs, args).toString())
+        is Expr.Value -> expr.v
+        is Expr.Local -> args.getOrElse(expr.idx) { Value.Null }
+        else -> Value.Null
     }
 }
 
-fun parseFuncs(tokens: Iterator<Token>) : Result<Map<String, Func>> = TODO()
+fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String, Int>): Result<Expr> = TODO()
+
+fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> = TODO()
 
 fun words(s: String): List<String> {
-    val s = "$s "
+    val words = ArrayList<String>()
+    val sb = StringBuilder()
     var inStr = false
-    for (c in s) {
-        when (c) {
-            '"' -> inStr = !inStr
-        }
 
+    for (c in s) {
+        when {
+            c == '"' -> {
+                inStr = !inStr
+                sb.append(c)
+            }
+            c.isWhitespace() -> if (inStr) {
+                sb.append(c)
+            } else {
+                if (sb.isNotEmpty())
+                    words.add(sb.toString().trim())
+                sb.setLength(0)
+            }
+            else -> sb.append(c)
+        }
     }
+
+    if (sb.isNotEmpty())
+        words.add(sb.toString().trim())
+
+    return words
 }
 
 fun lex(code: String): List<Token> {
@@ -149,11 +181,11 @@ fun lex(code: String): List<Token> {
     }
 }
 
-fun withCore(code: String) : String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
+fun withCore(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
 
 fun prompt(): Unit = TODO()
 
-fun exec(fname: String) : String = TODO()
+fun exec(fname: String): String = TODO()
 
 fun usage() = println("Usage: sigil [file]")
 
