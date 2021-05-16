@@ -11,8 +11,8 @@ sealed class Value {
         override fun toString(): String = b.toString()
     }
 
-    data class List(var l: ArrayList<Value>) : Value() {
-        override fun toString(): String = l.toString()
+    data class List(var items: MutableList<Value>) : Value() {
+        override fun toString(): String = items.toString()
     }
 
     object Null : Value() {

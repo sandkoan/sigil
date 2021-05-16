@@ -32,9 +32,9 @@ sealed class Token {
 
 sealed class Expr {
     data class If(val cond: Expr, val t: Expr, val f: Expr) : Expr()
-    data class Head(val h: Expr) : Expr()
-    data class Tail(val t: Expr) : Expr()
-    data class Fuse(val h: Expr, val e: Expr) : Expr()
+    data class Head(val list: Expr) : Expr()
+    data class Tail(val list: Expr) : Expr()
+    data class Fuse(val y: Expr, val x: Expr) : Expr()
     data class Pair(val f: Expr, val p: Expr) : Expr()
     data class Litr(val x: Expr) : Expr()
     data class Str(val x: Expr) : Expr()

@@ -43,7 +43,7 @@ internal class ValueTest {
             Value.Str("34545"),
             Value.Bool(false)
         ))
-        assertEquals(v.l, arrayListOf(
+        assertEquals(v.items, arrayListOf(
             Value.Num(334.0),
             Value.Num(-4545.0034),
             Value.Str("34545"),

@@ -69,39 +69,40 @@ fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
             else if (a is Value.Str && b is Value.Str) Value.Bool(a.s <= b.s)
             else Value.Null
         }
-//        is Expr.Head -> {
-//            when (val items = eval(expr.h, funcs, args)) {
-//                is Value.List -> items.l.elementAtOrElse(0) { Value.Null }
-//                is Value.Str -> if (items.s.isNotEmpty()) Value.Str(items.s[0].toString())
-//                else -> Value.Null
-//            }
-//        }
-//        is Expr.Tail -> {
-//            when (val items = eval(expr.t, funcs, args)) {
-//                is Value.List -> items.l.drop(1).forEach()
-//                is Value.Str -> if (items.s.isNotEmpty()) Value.Str(items.s[0].toString())
-//                else -> Value.Null
-//            }
-//        }
-//        is Expr.Fuse -> { }
+        is Expr.Head -> when (val list = eval(expr.list, funcs, args)) {
+            is Value.List -> list.items.elementAtOrElse(0) { Value.Null }
+            is Value.Str -> if (list.s.isNotEmpty()) Value.Str(list.s[0].toString()) else Value.Null
+            else -> Value.Null
+        }
+        is Expr.Tail -> when (val list = eval(expr.list, funcs, args)) {
+            is Value.List -> if (list.items.drop(1).isNotEmpty()) Value.List(list.items.drop(1).toMutableList()) else Value.Null
+            is Value.Str -> if (list.s.substring(1).isNotEmpty()) Value.Str(list.s.substring(1)) else Value.Null
+            else -> Value.Null
+        }
+        is Expr.Fuse -> {
+            val x = eval(expr.x, funcs, args)
+            val y = eval(expr.y, funcs, args)
+            if (x is Value.List && y is Value.List) Value.List((x.items + y.items).toMutableList())
+            else if (x is Value.List) Value.List((x.items + y).toMutableList())
+            else if (y is Value.List) Value.List((mutableListOf(x) + y.items).toMutableList())
+            else Value.List(mutableListOf(x, y))
+        }
         is Expr.Pair -> Value.List(arrayListOf(eval(expr.f, funcs, args), eval(expr.p, funcs, args)))
         is Expr.Call -> {
             val f = funcs[expr.f]
-            if (f != null) {
-                eval(f.expr, funcs, expr.params.map { eval(it, funcs, args) })
-            } else {
-                Value.Null
-            }
+            if (f != null) eval(f.expr, funcs, expr.params.map { eval(it, funcs, args) }) else Value.Null
         }
-//        is Expr.Words -> {
-//            when (val s = eval(expr.x, funcs, args)) {
-//
-//            }
-//        }
-        is Expr.Litr -> {
-            when (val s = eval(expr.x, funcs, args)) {
-                is Value.Str -> Value.of(s.s).getOrDefault(Value.Null)
-                else -> Value.Null
+        is Expr.Words -> when (val s = eval(expr.x, funcs, args)) {
+            is Value.Str -> Value.List(words(s.s).map { Value.Str(it) }.toMutableList())
+            else -> Value.Null
+        }
+        is Expr.Litr -> when (val s = eval(expr.x, funcs, args)) {
+            is Value.Str -> {
+                s // Value.of(s.s).getOrDefault(Value.Null)
+            }
+            else -> // Value.of(x.s).getOrDefault(Value.Null)
+            {
+                Value.Null
             }
         }
         is Expr.Input -> input(eval(expr.x, funcs, args).toString())
@@ -113,7 +114,6 @@ fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
         is Expr.Str -> Value.Str(eval(expr.x, funcs, args).toString())
         is Expr.Value -> expr.v
         is Expr.Local -> args.getOrElse(expr.idx) { Value.Null }
-        else -> Value.Null
     }
 }
 
@@ -174,7 +174,7 @@ fun lex(code: String): List<Token> {
             "__lesseq" -> Token.LessEq
             else -> {
                 val v = Value.of(it)
-                if (v.isSuccess) Token.Value(v.getOrNull()!!)
+                if (v.isSuccess) Token.Value(v.getOrElse { Value.Null })
                 else Token.Ident(it)
             }
         }
