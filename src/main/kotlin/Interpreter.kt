@@ -1,13 +1,8 @@
 import java.io.File
 
-sealed class ParseError {
-    data class Expected(val tok: Token) : Error()
-    object ExpectedToken : Error()
-    data class Unexpected(val tok: Token) : Error()
-    data class CannotFind(val s: String) : Error()
-}
-
 data class Func(val args: ArrayList<String>, val expr: Expr)
+
+fun withCore(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
 
 fun input(msg: String): Value {
     println(msg)
@@ -15,6 +10,66 @@ fun input(msg: String): Value {
 
     val input = readLine()!!.replace("\n", "")
     return Value.Str(input)
+}
+
+fun words(s: String): List<String> {
+    val words = ArrayList<String>()
+    val sb = StringBuilder()
+    var inStr = false
+
+    for (c in s) {
+        when {
+            c == '"' -> {
+                inStr = !inStr
+                sb.append(c)
+            }
+            c.isWhitespace() -> if (inStr) {
+                sb.append(c)
+            } else {
+                if (sb.isNotEmpty())
+                    words.add(sb.toString().trim())
+                sb.setLength(0)
+            }
+            else -> sb.append(c)
+        }
+    }
+
+    if (sb.isNotEmpty())
+        words.add(sb.toString().trim())
+
+    return words
+}
+
+fun lex(code: String): List<Token> {
+    return words(code).map {
+        when (it) {
+            "fn" -> Token.Fn
+            "is" -> Token.Is
+            "if" -> Token.If
+            "__head" -> Token.Head
+            "__tail" -> Token.Tail
+            "__fuse" -> Token.Fuse
+            "__pair" -> Token.Pair
+            "__litr" -> Token.Litr
+            "__str" -> Token.Str
+            "__words" -> Token.Words
+            "__input" -> Token.Input
+            "__print" -> Token.Print
+            "__eq" -> Token.Eq
+            "__add" -> Token.Add
+            "__neg" -> Token.Neg
+            "__mul" -> Token.Mul
+            "__div" -> Token.Div
+            "__rem" -> Token.Rem
+            "__less" -> Token.Less
+            "__lesseq" -> Token.LessEq
+            else -> {
+                val v = Value.of(it)
+                if (v.isSuccess) Token.Value(v.getOrElse { Value.Null })
+                else Token.Ident(it)
+            }
+        }
+    }
 }
 
 fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
@@ -181,75 +236,6 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
             }
         )
     else Result.failure(ParseError.ExpectedToken)
-
 }
 
 fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> = TODO()
-
-fun words(s: String): List<String> {
-    val words = ArrayList<String>()
-    val sb = StringBuilder()
-    var inStr = false
-
-    for (c in s) {
-        when {
-            c == '"' -> {
-                inStr = !inStr
-                sb.append(c)
-            }
-            c.isWhitespace() -> if (inStr) {
-                sb.append(c)
-            } else {
-                if (sb.isNotEmpty())
-                    words.add(sb.toString().trim())
-                sb.setLength(0)
-            }
-            else -> sb.append(c)
-        }
-    }
-
-    if (sb.isNotEmpty())
-        words.add(sb.toString().trim())
-
-    return words
-}
-
-fun lex(code: String): List<Token> {
-    return words(code).map {
-        when (it) {
-            "fn" -> Token.Fn
-            "is" -> Token.Is
-            "if" -> Token.If
-            "__head" -> Token.Head
-            "__tail" -> Token.Tail
-            "__fuse" -> Token.Fuse
-            "__pair" -> Token.Pair
-            "__litr" -> Token.Litr
-            "__str" -> Token.Str
-            "__words" -> Token.Words
-            "__input" -> Token.Input
-            "__print" -> Token.Print
-            "__eq" -> Token.Eq
-            "__add" -> Token.Add
-            "__neg" -> Token.Neg
-            "__mul" -> Token.Mul
-            "__div" -> Token.Div
-            "__rem" -> Token.Rem
-            "__less" -> Token.Less
-            "__lesseq" -> Token.LessEq
-            else -> {
-                val v = Value.of(it)
-                if (v.isSuccess) Token.Value(v.getOrElse { Value.Null })
-                else Token.Ident(it)
-            }
-        }
-    }
-}
-
-fun withCore(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
-
-
-
-
-
-

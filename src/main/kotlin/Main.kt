@@ -9,6 +9,8 @@ fun main(args: Array<String>) {
     }
 }
 
+fun usage() = println("Usage: sigil [file]")
+
 fun prompt(): Unit = TODO()
 
 fun exec(fname: String) {
@@ -23,4 +25,3 @@ fun exec(fname: String) {
     }.getOrThrow()
 }
 
-fun usage() = println("Usage: sigil [file]")
