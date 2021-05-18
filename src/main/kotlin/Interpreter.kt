@@ -2,7 +2,7 @@ import java.io.File
 
 data class Func(val args: ArrayList<String>, val expr: Expr)
 
-fun withCore(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
+fun withPrelude(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
 
 fun input(msg: String): Value {
     println(msg)
@@ -43,8 +43,8 @@ fun words(s: String): List<String> {
 fun lex(code: String): List<Token> {
     return words(code).map {
         when (it) {
-            "fn" -> Token.Fn
-            "is" -> Token.Is
+            "let" -> Token.Fn
+            "=" -> Token.Is
             "if" -> Token.If
             "__head" -> Token.Head
             "__tail" -> Token.Tail
@@ -152,13 +152,8 @@ fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
             else -> Value.Null
         }
         is Expr.Litr -> when (val s = eval(expr.x, funcs, args)) {
-            is Value.Str -> {
-                s // Value.of(s.s).getOrDefault(Value.Null)
-            }
-            else -> // Value.of(x.s).getOrDefault(Value.Null)
-            {
-                Value.Null
-            }
+            is Value.Str -> Value.of(s.s).getOrDefault(Value.Null)
+            else -> Value.Null
         }
         is Expr.Input -> input(eval(expr.x, funcs, args).toString())
         is Expr.Print -> {
@@ -229,7 +224,28 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
                 )
 
                 is Token.Ident -> {
-                    TODO()
+                    var idx = -1
+                    for ((index, e) in args.withIndex()) {
+                        if (v.i == e) {
+                            idx = index
+                            break
+                        }
+                    }
+
+                    when {
+                        idx >= 0 -> Expr.Local(idx)
+                        funcDefs[v.i] != null -> {
+                            val fArgs = funcDefs[v.i]!!
+                            val params = mutableListOf<Expr>()
+                            for (q in 0..fArgs) {
+                                params.add(parseExpr(tokens, args, funcDefs).getOrThrow())
+                            }
+                            Expr.Call(v.i, params)
+                        }
+                        else -> {
+                            return Result.failure(ParseError.CannotFind(v.i))
+                        }
+                    }
                 }
 
                 else -> return Result.failure(ParseError.Unexpected(v))
@@ -238,4 +254,10 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
     else Result.failure(ParseError.ExpectedToken)
 }
 
-fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> = TODO()
+fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
+    var funcs = hashMapOf<String, Func>()
+    var funcDefs = hashMapOf<String, Int>()
+
+
+    TODO()
+}

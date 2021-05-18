@@ -26,7 +26,7 @@ sealed class Token {
     object Less : Token()
     object LessEq : Token()
 
-    data class Ident(val id: String) : Token()
+    data class Ident(val i: String) : Token()
     data class Value(val v: Val) : Token()
 }
 
@@ -52,6 +52,6 @@ sealed class Expr {
     data class LessEq(val x: Expr, val y: Expr) : Expr()
 
     data class Value(val v: Val) : Expr()
-    data class Call(val f: String, val params: ArrayList<Expr>) : Expr()
+    data class Call(val f: String, val params: List<Expr>) : Expr()
     data class Local(val idx: Int) : Expr()
 }

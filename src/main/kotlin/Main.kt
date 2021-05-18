@@ -11,7 +11,25 @@ fun main(args: Array<String>) {
 
 fun usage() = println("Usage: sigil [file]")
 
-fun prompt(): Unit = TODO()
+fun prompt() {
+    println("Welcom to the Sigil prompt.")
+    println("The Prelude is imported by default.")
+    var line = readLine()
+    while (line != null) {
+        val x = {
+            val tokens = lex(withPrelude(line!!))
+            parseFuncs(tokens.iterator()).map { funcs ->
+                funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
+            }.also {
+                parseExpr(tokens.iterator(), arrayListOf(), hashMapOf()).map { expr ->
+                    eval(expr, hashMapOf(), arrayListOf())
+                }
+            }
+        }
+        line = readLine()
+    }
+    TODO()
+}
 
 fun exec(fname: String) {
     val f = File(fname)
@@ -20,8 +38,7 @@ fun exec(fname: String) {
     else
         throw FileNotFoundException("Could not open file '$fname'")
 
-    val x = parseFuncs(lex(withCore(code)).iterator()).map { funcs ->
+    val x = parseFuncs(lex(withPrelude(code)).iterator()).map { funcs ->
         funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
     }.getOrThrow()
 }
-
