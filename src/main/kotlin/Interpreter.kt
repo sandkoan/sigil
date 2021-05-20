@@ -1,6 +1,6 @@
 import java.io.File
 
-data class Func(val args: ArrayList<String>, val expr: Expr)
+data class Func(val args: List<String>, val expr: Expr)
 
 fun withPrelude(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
 
@@ -242,9 +242,7 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
                             }
                             Expr.Call(v.i, params)
                         }
-                        else -> {
-                            return Result.failure(ParseError.CannotFind(v.i))
-                        }
+                        else -> return Result.failure(ParseError.CannotFind(v.i))
                     }
                 }
 
@@ -255,9 +253,33 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
 }
 
 fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
-    var funcs = hashMapOf<String, Func>()
-    var funcDefs = hashMapOf<String, Int>()
+    val funcs = hashMapOf<String, Func>()
+    val funcDefs = hashMapOf<String, Int>()
 
+    // TODO: Complete tokens.asSequence().scan() nonsense
 
-    TODO()
+    while (true) {
+        when (tokens.next()) {
+            is Token.Fn -> {
+            }
+            else -> return Result.success(funcs)
+        }
+
+        val name = when (val s = tokens.next()) {
+            is Token.Ident -> s.i
+            else -> return Result.failure(ParseError.Expected(Token.Fn))
+        }
+
+        val args = mutableListOf<String>()
+        while (true) {
+            when (val s = tokens.next()) {
+                is Token.Ident -> args.add(s.i)
+                is Token.Is -> break
+                else -> return Result.failure(ParseError.Expected(Token.Is))
+            }
+        }
+
+        funcDefs[name] = args.size
+        funcs[name] = Func(args, parseExpr(tokens, args, funcDefs).getOrThrow())
+    }
 }

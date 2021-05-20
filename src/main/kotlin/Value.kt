@@ -26,18 +26,27 @@ sealed class Value {
                 "null" -> return Result.success(Null)
                 "true" -> return Result.success(Bool(true))
                 "false" -> return Result.success(Bool(false))
-                // Add toValue for a list
-                // "[" ->
                 else -> {
                     try {
                         return Result.success(Num(s.toDouble()))
                     } catch (e: NumberFormatException) {
                     }
 
-                    if (s.indexOf("\"") == 0 && s.lastIndexOf("\"") == s.length - 1) {
+                    if (s.indexOf('"') == 0 && s.lastIndexOf('"') == s.length - 1 && s.count { it == '"' } == 2) {
 //                        return Result.success(Str(s.substring(1)))
                         return Result.success(Str(s.substring(1, s.length - 1)))
                     }
+
+                    /*
+                    else if (s.indexOf('[') == 0 && s.lastIndexOf(']') == s.length - 1) {
+                        var x = s.trim('[', ']')
+                        for (i in x) {
+
+                        }
+                        return Result.success()
+                    }
+                    */
+
                     return Result.failure(Error("Not a valid Value"))
                 }
             }
