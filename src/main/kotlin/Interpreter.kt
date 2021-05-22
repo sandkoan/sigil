@@ -191,6 +191,7 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
                 is Token.Words -> Expr.Words(parseExpr(tokens, args, funcDefs).getOrThrow())
                 is Token.Input -> Expr.Input(parseExpr(tokens, args, funcDefs).getOrThrow())
                 is Token.Print -> Expr.Print(parseExpr(tokens, args, funcDefs).getOrThrow())
+
                 is Token.Value -> Expr.Value(v.v)
 
                 is Token.Eq -> Expr.Eq(
@@ -256,12 +257,34 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
     val funcs = hashMapOf<String, Func>()
     val funcDefs = hashMapOf<String, Int>()
 
-    // TODO: Complete tokens.asSequence().scan() nonsense
+    tokens.asSequence().scan(Pair<Pair<String?, Int>, Map<String, Int>>(null, funcDefs)) { p, tok ->
+        if (p.first.first != null) {
+                var name = p.first.first!!
+                var n = p.first.second
+                when (tok) {
+                    is Token.Ident -> {
+                        if (n == 0)
+                            name = tok.i
+                        n++
+                    }
+                    is Token.Is -> {
+                        p.second[name] = n - 1
+                        p.first = null
+                    }
+                    else -> n++
+                }
+            }
+            else when (tok) {
+                is Token.Fn -> p = p.copy(first = Pair("", 0))
+                    else -> {}
+            }
+        tok
+    }.forEach { }
+
 
     while (true) {
         when (tokens.next()) {
-            is Token.Fn -> {
-            }
+            is Token.Fn -> { }
             else -> return Result.success(funcs)
         }
 

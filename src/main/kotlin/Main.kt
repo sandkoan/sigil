@@ -14,31 +14,40 @@ fun usage() = println("Usage: sigil [file]")
 fun prompt() {
     println("Welcom to the Sigil prompt.")
     println("The Prelude is imported by default.")
+    System.out.flush()
+
     var line = readLine()
-    while (line != null) {
-        val x = {
+    // FIXME: I'm 90% sure this doesn't work
+    while (true) {
+        run {
             val tokens = lex(withPrelude(line!!))
             parseFuncs(tokens.iterator()).map { funcs ->
                 funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
             }.also {
                 parseExpr(tokens.iterator(), arrayListOf(), hashMapOf()).map { expr ->
-                    eval(expr, hashMapOf(), arrayListOf())
+                    { eval(expr, hashMapOf(), arrayListOf()) }
                 }
             }
         }
+            .mapCatching { println(it.toString()) }
+            .getOrThrow()
+
         line = readLine()
     }
-    TODO()
 }
 
 fun exec(fname: String) {
-    val f = File(fname)
-    val code = if (f.canRead())
-        f.readText(Charsets.UTF_8)
-    else
-        throw FileNotFoundException("Could not open file '$fname'")
+    val code  = File(fname).let {
+        if (it.canRead())
+            it.readText(Charsets.UTF_8)
+        else
+            throw FileNotFoundException("Could not open file '$fname'")
+    }
 
-    val x = parseFuncs(lex(withPrelude(code)).iterator()).map { funcs ->
-        funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
+    // TODO: Should be val x = parseFuncs ??
+    run {
+        parseFuncs(lex(withPrelude(code)).iterator()).map { funcs ->
+            funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
+        }
     }.getOrThrow()
 }
