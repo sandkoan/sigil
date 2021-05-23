@@ -2,13 +2,14 @@ import java.io.File
 
 data class Func(val args: List<String>, val expr: Expr)
 
+// TODO: Fix path
 fun withPrelude(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
 
 fun input(msg: String): Value {
-    println(msg)
+    print(msg)
     System.out.flush()
 
-    val input = readLine()!!.replace("\n", "")
+    val input = readLine()!!.trim()
     return Value.Str(input)
 }
 
@@ -257,34 +258,40 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
     val funcs = hashMapOf<String, Func>()
     val funcDefs = hashMapOf<String, Int>()
 
-    tokens.asSequence().scan(Pair<Pair<String?, Int>, Map<String, Int>>(null, funcDefs)) { p, tok ->
-        if (p.first.first != null) {
-                var name = p.first.first!!
-                var n = p.first.second
-                when (tok) {
-                    is Token.Ident -> {
-                        if (n == 0)
-                            name = tok.i
-                        n++
-                    }
-                    is Token.Is -> {
-                        p.second[name] = n - 1
-                        p.first = null
-                    }
-                    else -> n++
-                }
+    /*
+    By end, funcs is always empty, and funcDefs looks like:
+    {
+        "main": 0,
+        "print": 1,
+        "+": 2,
+    }
+
+    let print x = <body>
+    let + x y = <body>
+    let main = <body>
+    */
+
+    var n = -1
+    var t = 0
+    for (tok in tokens) {
+        when (tok) {
+            is Token.Fn -> { n = 0 }
+            is Token.Ident -> {
+                funcDefs[tok.i] = n
             }
-            else when (tok) {
-                is Token.Fn -> p = p.copy(first = Pair("", 0))
-                    else -> {}
+            is Token.Is  -> { n = -1 }
+
+            else -> if (n >= 0) {
+
             }
-        tok
-    }.forEach { }
+        }
+    }
 
 
     while (true) {
         when (tokens.next()) {
-            is Token.Fn -> { }
+            is Token.Fn -> {
+            }
             else -> return Result.success(funcs)
         }
 
