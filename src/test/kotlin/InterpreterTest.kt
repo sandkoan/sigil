@@ -163,7 +163,7 @@ internal class InterpreterKtTest {
             """.trimIndent()
             assertEquals(
                 hashMapOf("main" to 0),
-                parseFuncs(lex(s).iterator()).getOrThrow()
+                parseFuncs(lex(s).iterator()).getOrThrow().also { println(it) }
             )
         }
 
@@ -175,7 +175,7 @@ internal class InterpreterKtTest {
             """.trimIndent()
             assertEquals(
                 hashMapOf("main" to 0),
-                parseFuncs(lex(s).iterator()).getOrThrow()
+                parseFuncs(lex(s).iterator()).getOrThrow().also { println(it) }
             )
         }
 
@@ -183,11 +183,11 @@ internal class InterpreterKtTest {
         fun `test one arg function`() {
             val s = """
                 let greet x =
-                    print x
+                    __print x
             """.trimIndent()
             assertEquals(
                 hashMapOf("greet" to 1),
-                parseFuncs(lex(s).iterator()).getOrThrow()
+                parseFuncs(lex(s).iterator()).getOrThrow().also { println(it) }
             )
         }
 
@@ -199,7 +199,7 @@ internal class InterpreterKtTest {
             """.trimIndent()
             assertEquals(
                 hashMapOf("add" to 2),
-                parseFuncs(lex(s).iterator()).getOrThrow()
+                parseFuncs(lex(s).iterator()).getOrThrow().also { println(it) }
             )
         }
 
@@ -207,7 +207,7 @@ internal class InterpreterKtTest {
         fun `test multiple functions`() {
             val s = """
                 let greet x =
-                    print x
+                    __print x
                     
                 let printMod x y =
                     greet __rem x y
@@ -217,7 +217,7 @@ internal class InterpreterKtTest {
             """.trimIndent()
             assertEquals(
                 hashMapOf("greet" to 1, "printMod" to 2, "main" to 0),
-                parseFuncs(lex(s).iterator()).getOrThrow()
+                parseFuncs(lex(s).iterator()).getOrThrow().also { println(it) }
             )
         }
     }
