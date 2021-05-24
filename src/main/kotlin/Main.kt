@@ -21,10 +21,10 @@ fun prompt() {
     while (true) {
         run {
             val tokens = lex(withPrelude(line!!))
-            parseFuncs(tokens.iterator()).map { funcs ->
+            parseFuncs(tokens.listIterator()).map { funcs ->
                 funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
             }.also {
-                parseExpr(tokens.iterator(), arrayListOf(), hashMapOf()).map { expr ->
+                parseExpr(tokens.listIterator(), arrayListOf(), hashMapOf()).map { expr ->
                     { eval(expr, hashMapOf(), arrayListOf()) }
                 }
             }
@@ -46,7 +46,7 @@ fun exec(fname: String) {
 
     // TODO: Should be val x = parseFuncs ??
     run {
-        parseFuncs(lex(withPrelude(code)).iterator()).map { funcs ->
+        parseFuncs(lex(withPrelude(code)).listIterator()).map { funcs ->
             funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
         }
     }.getOrThrow()

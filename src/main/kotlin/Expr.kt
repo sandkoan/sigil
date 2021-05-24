@@ -1,30 +1,86 @@
 typealias Val = Value
 
 sealed class Token {
-    object Fn : Token()
-    object Is : Token()
+    object Fn : Token() {
+        override fun toString(): String = "Fn"
+    }
 
-    object If : Token()
-    object Head : Token()
-    object Tail : Token()
+    object Is : Token() {
+        override fun toString(): String = "Is"
+    }
 
-    object Fuse : Token()
-    object Pair : Token()
-    object Litr : Token()
+    object If : Token() {
+        override fun toString(): String = "If"
+    }
 
-    object Str : Token()
-    object Words : Token()
-    object Input : Token()
-    object Print : Token()
+    object Head : Token() {
+        override fun toString(): String = "Head"
+    }
 
-    object Add : Token()
-    object Neg : Token()
-    object Mul : Token()
-    object Div : Token()
-    object Rem : Token()
-    object Eq : Token()
-    object Less : Token()
-    object LessEq : Token()
+    object Tail : Token() {
+        override fun toString(): String = "Tail"
+    }
+
+    object Fuse : Token() {
+        override fun toString(): String = "Fuse"
+    }
+
+    object Pair : Token() {
+        override fun toString(): String = "Pair"
+    }
+
+    object Litr : Token() {
+        override fun toString(): String = "Litr"
+    }
+
+    object Str : Token() {
+        override fun toString(): String = "Str"
+    }
+
+    object Words : Token() {
+        override fun toString(): String = "Words"
+    }
+
+    object Input : Token() {
+
+        override fun toString(): String = "Input"
+    }
+
+    object Print : Token() {
+        override fun toString(): String = "Print"
+    }
+
+    object Add : Token() {
+        override fun toString(): String = "Add"
+    }
+
+    object Neg : Token() {
+        override fun toString(): String = "Neg"
+    }
+
+    object Mul : Token() {
+        override fun toString(): String = "Mul"
+    }
+
+    object Div : Token() {
+        override fun toString(): String = "Div"
+    }
+
+    object Rem : Token() {
+        override fun toString(): String = "Rem"
+    }
+
+    object Eq : Token() {
+        override fun toString(): String = "Eq"
+    }
+
+    object Less : Token() {
+        override fun toString(): String = "Less"
+    }
+
+    object LessEq : Token() {
+        override fun toString(): String = "LessEq"
+    }
 
     data class Ident(val i: String) : Token()
     data class Value(val v: Val) : Token()
@@ -34,7 +90,7 @@ sealed class Expr {
     data class If(val cond: Expr, val t: Expr, val f: Expr) : Expr()
     data class Head(val list: Expr) : Expr()
     data class Tail(val list: Expr) : Expr()
-    data class Fuse(val y: Expr, val x: Expr) : Expr()
+    data class Fuse(val x: Expr, val y: Expr) : Expr()
     data class Pair(val f: Expr, val p: Expr) : Expr()
     data class Litr(val x: Expr) : Expr()
     data class Str(val x: Expr) : Expr()

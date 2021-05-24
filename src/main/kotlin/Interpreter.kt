@@ -1,10 +1,7 @@
 import java.io.File
-import java.util.*
-import kotlin.collections.ArrayList
 
 data class Func(val args: List<String>, val expr: Expr)
 
-// TODO: Fix path
 fun withPrelude(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
 
 fun input(msg: String): Value {
@@ -72,6 +69,7 @@ fun lex(code: String): List<Token> {
             }
         }
     }
+        .also { println(it) }
 }
 
 fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
@@ -173,63 +171,63 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
     return if (tokens.hasNext())
         Result.success(
             when (val v = tokens.next()) {
-                Token.If -> Expr.If(
+                is Token.If -> Expr.If(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.Head -> Expr.Head(parseExpr(tokens, args, funcDefs).getOrThrow())
-                Token.Tail -> Expr.Tail(parseExpr(tokens, args, funcDefs).getOrThrow())
-                Token.Fuse -> Expr.Fuse(
+                is Token.Head -> Expr.Head(parseExpr(tokens, args, funcDefs).getOrThrow())
+                is Token.Tail -> Expr.Tail(parseExpr(tokens, args, funcDefs).getOrThrow())
+                is Token.Fuse -> Expr.Fuse(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.Pair -> Expr.Pair(
+                is Token.Pair -> Expr.Pair(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.Litr -> Expr.Litr(parseExpr(tokens, args, funcDefs).getOrThrow())
-                Token.Str -> Expr.Str(parseExpr(tokens, args, funcDefs).getOrThrow())
-                Token.Words -> Expr.Words(parseExpr(tokens, args, funcDefs).getOrThrow())
-                Token.Input -> Expr.Input(parseExpr(tokens, args, funcDefs).getOrThrow())
-                Token.Print -> Expr.Print(parseExpr(tokens, args, funcDefs).getOrThrow())
+                is Token.Litr -> Expr.Litr(parseExpr(tokens, args, funcDefs).getOrThrow())
+                is Token.Str -> Expr.Str(parseExpr(tokens, args, funcDefs).getOrThrow())
+                is Token.Words -> Expr.Words(parseExpr(tokens, args, funcDefs).getOrThrow())
+                is Token.Input -> Expr.Input(parseExpr(tokens, args, funcDefs).getOrThrow())
+                is Token.Print -> Expr.Print(parseExpr(tokens, args, funcDefs).getOrThrow())
 
                 is Token.Value -> Expr.Value(v.v)
 
-                Token.Eq -> Expr.Eq(
+                is Token.Eq -> Expr.Eq(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.Add -> Expr.Add(
+                is Token.Add -> Expr.Add(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.Neg -> Expr.Neg(parseExpr(tokens, args, funcDefs).getOrThrow())
-                Token.Mul -> Expr.Mul(
+                is Token.Neg -> Expr.Neg(parseExpr(tokens, args, funcDefs).getOrThrow())
+                is Token.Mul -> Expr.Mul(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.Div -> Expr.Div(
+                is Token.Div -> Expr.Div(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.Rem -> Expr.Rem(
+                is Token.Rem -> Expr.Rem(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.Less -> Expr.Less(
+                is Token.Less -> Expr.Less(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
-                Token.LessEq -> Expr.LessEq(
+                is Token.LessEq -> Expr.LessEq(
                     parseExpr(tokens, args, funcDefs).getOrThrow(),
                     parseExpr(tokens, args, funcDefs).getOrThrow()
                 )
 
                 is Token.Ident -> {
                     var idx = -1
-                    for ((index, e) in args.withIndex()) {
-                        if (v.i == e) {
+                    for ((index, arg) in args.withIndex()) {
+                        if (v.i == arg) {
                             idx = index
                             break
                         }
@@ -279,9 +277,9 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
     for (tok in tokens) {
         l.add(tok)
         when (tok) {
-             Token.Fn -> inDec = true
-             is Token.Ident -> if (inDec) ids.add(tok.i)
-             Token.Is -> {
+            is Token.Fn -> inDec = true
+            is Token.Ident -> if (inDec) ids.add(tok.i)
+            is Token.Is -> {
                 funcDefs[ids[0]] = (ids.size - 1).coerceAtLeast(0)
                 inDec = false
                 ids.clear()
@@ -290,12 +288,13 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
         }
     }
 
+    println(funcDefs)
     val tokens = l.iterator()
 
     while (true) {
         if (tokens.hasNext()) {
             when (tokens.next()) {
-                Token.Fn -> { }
+                is Token.Fn -> { }
                 else -> return Result.success(funcs)
             }
         } else return Result.success(funcs)
@@ -310,31 +309,46 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
         }
 
         val args = mutableListOf<String>()
+
         while (true) {
-            if (tokens.hasNext())
+            if (tokens.hasNext()) {
                 when (val s = tokens.next()) {
                     is Token.Ident -> args.add(s.i)
-                    Token.Is -> break
+                    is Token.Is -> break
                     else -> return Result.failure(ParseError.Expected(Token.Is))
                 }
-            else return Result.failure(ParseError.Expected(Token.Is))
+            } else {
+                return Result.failure(ParseError.Expected(Token.Is))
+            }
         }
+
+        println("Before: ")
+        println(args)
+        println(funcs)
 
         funcDefs[name] = args.size
         funcs[name] = Func(args, parseExpr(tokens, args, funcDefs).getOrThrow())
+
+        println("After: ")
+        println(args)
+        println(funcs)
+
+        println("*****************")
     }
 }
 
 fun main() {
     val s = """
-        let greet x =
-            __print x
+        let a = 
+            10
             
         let printMod x y =
-            greet __rem x y
-
+            __print __rem x y
+        
         let main =
-            printMod 10 3
+            __print a
+            
     """.trimIndent()
+
     println(parseFuncs(lex(s).iterator()).getOrThrow())
 }
