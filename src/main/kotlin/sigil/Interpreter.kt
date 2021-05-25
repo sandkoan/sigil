@@ -1,3 +1,5 @@
+package sigil
+
 import java.io.File
 
 data class Func(val args: List<String>, val expr: Expr)
@@ -123,15 +125,15 @@ fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
             else if (a is Value.Str && b is Value.Str) Value.Bool(a.s <= b.s)
             else Value.Null
         }
-        is Expr.Head -> when (val list = eval(expr.list, funcs, args)) {
-            is Value.List -> list.items.elementAtOrElse(0) { Value.Null }
-            is Value.Str -> if (list.s.isNotEmpty()) Value.Str(list.s[0].toString()) else Value.Null
+        is Expr.Head -> when (val l = eval(expr.list, funcs, args)) {
+            is Value.List -> l.items.elementAtOrElse(0) { Value.Null }
+            is Value.Str -> if (l.s.isNotEmpty()) Value.Str(l.s[0].toString()) else Value.Null
             else -> Value.Null
         }
-        is Expr.Tail -> when (val list = eval(expr.list, funcs, args)) {
-            is Value.List -> if (list.items.drop(1).isNotEmpty()) Value.List(list.items.drop(1)
+        is Expr.Tail -> when (val l = eval(expr.list, funcs, args)) {
+            is Value.List -> if (l.items.drop(1).isNotEmpty()) Value.List(l.items.drop(1)
                 .toMutableList()) else Value.Null
-            is Value.Str -> if (list.s.substring(1).isNotEmpty()) Value.Str(list.s.substring(1)) else Value.Null
+            is Value.Str -> if (l.s.substring(1).isNotEmpty()) Value.Str(l.s.substring(1)) else Value.Null
             else -> Value.Null
         }
         is Expr.Fuse -> {
@@ -236,9 +238,11 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
                     when {
                         idx >= 0 -> Expr.Local(idx)
                         funcDefs[v.i] != null -> {
+                            println("function = ${v.i}")
                             val fArgs = funcDefs[v.i]!!
                             val params = mutableListOf<Expr>()
                             for (q in 0..fArgs) {
+                                println("params = $params")
                                 params.add(parseExpr(tokens, args, funcDefs).getOrThrow())
                             }
                             Expr.Call(v.i, params)
@@ -264,8 +268,8 @@ By end, funcs is always empty, and funcDefs looks like:
 let print x = <body>
 let + x y = <body>
 let main = <body>
+Our problem is with calling non native functions.
 */
-
 fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
     val funcs = hashMapOf<String, Func>()
     val funcDefs = hashMapOf<String, Int>()
@@ -339,15 +343,15 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
 
 fun main() {
     val s = """
-        let a = 
-            10
-            
+        let print x =
+            __print x
+
         let printMod x y =
-            __print __rem x y
-        
+            print __rem x y
+
         let main =
-            __print a
-            
+            printMod 10 3
+        
     """.trimIndent()
 
     println(parseFuncs(lex(s).iterator()).getOrThrow())

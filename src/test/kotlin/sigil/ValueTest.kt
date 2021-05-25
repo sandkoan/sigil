@@ -1,3 +1,5 @@
+package sigil
+
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -19,7 +21,7 @@ internal class ValueTest {
     @Test
     fun `test string toValue and toString`() {
         val v = Value.of("\"Hello World\"")
-//        assertEquals(v.getOrThrow(), Value.Str("Hello World\""))
+//        assertEquals(v.getOrThrow(), sigil.Value.Str("Hello World\""))
         assertEquals(v.getOrThrow(), Value.Str("Hello World"))
         assertEquals(v.getOrThrow().toString(), "Hello World")
     }

@@ -1,3 +1,5 @@
+package sigil
+
 sealed class Value {
     data class Num(var n: Double) : Value() {
         override fun toString(): String = n.toString()
@@ -47,7 +49,7 @@ sealed class Value {
                     }
                     */
 
-                    return Result.failure(Error("Not a valid Value"))
+                    return Result.failure(Error("Not a valid sigil.Value"))
                 }
             }
         }

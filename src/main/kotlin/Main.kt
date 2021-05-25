@@ -1,3 +1,4 @@
+import sigil.*
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -21,11 +22,11 @@ fun prompt() {
     while (true) {
         run {
             val tokens = lex(withPrelude(line!!))
-            parseFuncs(tokens.listIterator()).map { funcs ->
+            parseFuncs(tokens.iterator()).map { funcs ->
                 funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
             }.also {
-                parseExpr(tokens.listIterator(), arrayListOf(), hashMapOf()).map { expr ->
-                    { eval(expr, hashMapOf(), arrayListOf()) }
+                parseExpr(tokens.iterator(), mutableListOf(), hashMapOf()).map { expr ->
+                    { eval(expr, hashMapOf(), mutableListOf()) }
                 }
             }
         }
@@ -44,9 +45,9 @@ fun exec(fname: String) {
             throw FileNotFoundException("Could not open file '$fname'")
     }
 
-    // TODO: Should be val x = parseFuncs ??
+    // TODO: Should be val x = sigil.parseFuncs ??
     run {
-        parseFuncs(lex(withPrelude(code)).listIterator()).map { funcs ->
+        parseFuncs(lex(withPrelude(code)).iterator()).map { funcs ->
             funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
         }
     }.getOrThrow()

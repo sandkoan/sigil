@@ -1,3 +1,5 @@
+package sigil
+
 typealias Val = Value
 
 sealed class Token {
