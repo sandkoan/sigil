@@ -3,7 +3,7 @@
 An simple functional programming language, written in Kotlin.
 
 ## Examples
-```ocaml
+```sml
 let factorial n =
 	if == 0 n
 		1
