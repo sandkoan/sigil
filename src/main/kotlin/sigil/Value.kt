@@ -1,5 +1,9 @@
 package sigil
 
+/*
+* Value makes up the fundamental data structure of sigil, the atoms that it can be boiled down to:
+* Num, Str, Bool, List, and Null. Even other structures like Pair are just Lists with two elements.
+* */
 sealed class Value {
     data class Num(var n: Double) : Value() {
         override fun toString(): String = n.toString()
@@ -20,7 +24,10 @@ sealed class Value {
     object Null : Value() {
         override fun toString(): String = "null"
     }
-
+    /*
+    * Converts from a string value to a Sigil atom ("Value") without using too many custom defined values.
+    * Sigil atoms are really just wrappers around Kotlin datatypes, which makes it easier to convert and manipulate them.
+    * */
     companion object {
         fun of(s: String): Result<Value> {
             val s = s.trim()

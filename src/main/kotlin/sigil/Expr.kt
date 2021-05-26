@@ -2,6 +2,10 @@ package sigil
 
 typealias Val = Value
 
+/*
+* Token class used as the return type of `lex(String)`
+* which is then parsed into a tree of Expressions.
+* */
 sealed class Token {
     object Fn : Token() {
         override fun toString(): String = "Fn"
@@ -88,6 +92,10 @@ sealed class Token {
     data class Value(val v: Val) : Token()
 }
 
+/*
+* Recursively defined `Expr` data type is what Values are combined into.
+* They are made up of native and nonnative function calls.
+* */
 sealed class Expr {
     data class If(val cond: Expr, val t: Expr, val f: Expr) : Expr()
     data class Head(val list: Expr) : Expr()

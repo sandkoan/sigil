@@ -2,16 +2,28 @@ package sigil
 
 import java.io.File
 
+/*
+* Function class with list of arguments, and the expression that the function evaluates to.
+* */
 data class Func(val args: List<String>, val expr: Expr)
 
+/*
+* Prepends code from "core" library to user's source code - adds some useful utlity / wrapper functions.
+* */
 fun withPrelude(code: String): String = File("sigil/core.sig").readText(Charsets.UTF_8) + code
 
+/*
+* Takes input from the user, optionally, prompting them with a message.
+* */
 fun input(msg: String): Value {
-    print(msg)
+    println(msg)
     System.out.flush()
     return Value.Str(readLine()!!.trim())
 }
 
+/*
+* Splits input text by whitespace, while preserving whitespace within "strings."
+* */
 fun words(s: String): List<String> {
     val words = ArrayList<String>()
     val sb = StringBuilder()
@@ -40,11 +52,14 @@ fun words(s: String): List<String> {
     return words
 }
 
+/*
+* Function that maps the split words from `words` to tokens (either native identifiers, or nonnative).
+* */
 fun lex(code: String): List<Token> {
     return words(code).map {
         when (it) {
             "let" -> Token.Fn
-            "=" -> Token.Is
+            "=", "is" -> Token.Is
             "if" -> Token.If
             "__head" -> Token.Head
             "__tail" -> Token.Tail
@@ -73,110 +88,27 @@ fun lex(code: String): List<Token> {
 //        .also { println(it) }
 }
 
-fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
-    return when (expr) {
-        is Expr.If -> if (eval(expr.cond, funcs, args) == Value.Bool(true)) {
-            eval(expr.t, funcs, args)
-        } else {
-            eval(expr.f, funcs, args)
-        }
-        is Expr.Eq -> Value.Bool(eval(expr.x, funcs, args) == eval(expr.y, funcs, args))
-        is Expr.Add -> {
-            val a = eval(expr.x, funcs, args)
-            val b = eval(expr.y, funcs, args)
-            if (a is Value.Num && b is Value.Num) Value.Num(a.n + b.n)
-            else if (a is Value.Str && b is Value.Str) Value.Str(a.s + b.s)
-            else Value.Null
-        }
-        is Expr.Neg -> when (val y = eval(expr.n, funcs, args)) {
-            is Value.Num -> Value.Num(-y.n)
-            else -> Value.Null
-        }
-        is Expr.Mul -> {
-            val a = eval(expr.x, funcs, args)
-            val b = eval(expr.y, funcs, args)
-            if (a is Value.Num && b is Value.Num) Value.Num(a.n * b.n)
-            else Value.Null
-        }
-        is Expr.Div -> {
-            val a = eval(expr.x, funcs, args)
-            val b = eval(expr.y, funcs, args)
-            if (a is Value.Num && b is Value.Num) Value.Num(a.n / b.n)
-            else Value.Null
-        }
-        is Expr.Rem -> {
-            val a = eval(expr.x, funcs, args)
-            val b = eval(expr.y, funcs, args)
-            if (a is Value.Num && b is Value.Num) Value.Num(a.n % b.n)
-            else Value.Null
-        }
-        is Expr.Less -> {
-            val a = eval(expr.x, funcs, args)
-            val b = eval(expr.y, funcs, args)
-            if (a is Value.Num && b is Value.Num) Value.Bool(a.n < b.n)
-            else if (a is Value.Str && b is Value.Str) Value.Bool(a.s < b.s)
-            else Value.Null
-        }
-        is Expr.LessEq -> {
-            val a = eval(expr.x, funcs, args)
-            val b = eval(expr.y, funcs, args)
-            if (a is Value.Num && b is Value.Num) Value.Bool(a.n <= b.n)
-            else if (a is Value.Str && b is Value.Str) Value.Bool(a.s <= b.s)
-            else Value.Null
-        }
-        is Expr.Head -> when (val l = eval(expr.list, funcs, args)) {
-            is Value.List -> l.items.elementAtOrElse(0) { Value.Null }
-            is Value.Str -> if (l.s.isNotEmpty()) Value.Str(l.s[0].toString()) else Value.Null
-            else -> Value.Null
-        }
-        is Expr.Tail -> when (val l = eval(expr.list, funcs, args)) {
-            is Value.List -> if (l.items.drop(1).isNotEmpty()) Value.List(l.items.drop(1)
-                .toMutableList()) else Value.Null
-            is Value.Str -> if (l.s.substring(1).isNotEmpty()) Value.Str(l.s.substring(1)) else Value.Null
-            else -> Value.Null
-        }
-        is Expr.Fuse -> {
-            val x = eval(expr.x, funcs, args)
-            val y = eval(expr.y, funcs, args)
-            if (x is Value.List && y is Value.List) Value.List((x.items + y.items).toMutableList())
-            else if (x is Value.List) Value.List((x.items + y).toMutableList())
-            else if (y is Value.List) Value.List((mutableListOf(x) + y.items).toMutableList())
-            else Value.List(mutableListOf(x, y))
-        }
-        is Expr.Pair -> Value.List(arrayListOf(eval(expr.f, funcs, args), eval(expr.p, funcs, args)))
-        is Expr.Call -> {
-            val f = funcs[expr.f]
-            if (f != null) eval(f.expr, funcs, expr.params.map { eval(it, funcs, args) }) else Value.Null
-        }
-        is Expr.Words -> when (val s = eval(expr.x, funcs, args)) {
-            is Value.Str -> Value.List(words(s.s).map { Value.Str(it) }.toMutableList())
-            else -> Value.Null
-        }
-        is Expr.Litr -> when (val s = eval(expr.x, funcs, args)) {
-            is Value.Str -> Value.of(s.s).getOrDefault(Value.Null)
-            else -> Value.Null
-        }
-        is Expr.Input -> input(eval(expr.x, funcs, args).toString())
-        is Expr.Print -> {
-            val v = eval(expr.x, funcs, args)
-            println(v.toString())
-            v
-        }
-        is Expr.Str -> Value.Str(eval(expr.x, funcs, args).toString())
-        is Expr.Value -> expr.v
-        is Expr.Local -> args.getOrElse(expr.idx) { Value.Null }
-    }
-}
-
+/*
+* Recursively expands expression into subatomic expressions in a tree like format.
+* */
 fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String, Int>): Result<Expr> {
     return if (tokens.hasNext())
         Result.success(
             when (val v = tokens.next()) {
-                is Token.If -> Expr.If(
-                    parseExpr(tokens, args, funcDefs).getOrThrow(),
-                    parseExpr(tokens, args, funcDefs).getOrThrow(),
-                    parseExpr(tokens, args, funcDefs).getOrThrow()
-                )
+                is Token.If -> {
+                    val x = parseExpr(tokens, args, funcDefs).getOrThrow()
+//                    println(tokens.hasNext())
+                    val y = parseExpr(tokens, args, funcDefs).getOrThrow()
+//                    println(tokens.hasNext())
+                    val z = parseExpr(tokens, args, funcDefs).getOrThrow()
+//                    println(tokens.hasNext())
+
+                    Expr.If(
+                        x,
+                        y,
+                        z
+                    )
+                }
                 is Token.Head -> Expr.Head(parseExpr(tokens, args, funcDefs).getOrThrow())
                 is Token.Tail -> Expr.Tail(parseExpr(tokens, args, funcDefs).getOrThrow())
                 is Token.Fuse -> Expr.Fuse(
@@ -226,6 +158,7 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
                 )
 
                 is Token.Ident -> {
+                    // Check if identifier is an argument to function
                     var idx = -1
                     for ((index, arg) in args.withIndex()) {
                         if (v.i == arg) {
@@ -239,6 +172,7 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
                         funcDefs[v.i] != null -> {
                             val fArgs = funcDefs[v.i]!!
                             val params = mutableListOf<Expr>()
+                            // Add evaluated arguments to params list
                             for (q in 0..fArgs) {
                                 if (tokens.hasNext())
                                     params.add(parseExpr(tokens, args, funcDefs).getOrThrow())
@@ -255,9 +189,16 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
     else Result.failure(ParseError.ExpectedToken)
 }
 
+/*
+* Sigil uses Polish notation, so the compiler needs to know the arity of every function in a Map.
+* Then converts function body into an evaluable Expr using `parseExpr`, and adds thee expression to a list,
+* to be evaluated at a later time.
+* */
 fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
     val funcs = hashMapOf<String, Func>()
     val funcDefs = hashMapOf<String, Int>()
+
+    // Populate funcDefs with the arity of every function defined
     val ids = mutableListOf<String>()
     val l = mutableListOf<Token>()
 
@@ -278,6 +219,7 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
 
     val tokens = l.iterator()
 
+    // Use funcDefs to expand function body to Expr.
     while (true) {
         if (tokens.hasNext()) {
             when (tokens.next()) {
@@ -311,62 +253,17 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
 
         funcDefs[name] = args.size
         funcs[name] = Func(args, parseExpr(tokens, args, funcDefs).getOrThrow())
+//        println(funcs.prettyPrint())
     }
 }
 
 fun main() {
     val s = """
-        let == x y =
-            __eq x y
-
-        let + x y =
-            __add x y
-
-        let neg x =
-            __neg x
-
-        let * x y =
-            __mul x y
-
-        let / x y =
-            __div x y
-
-        let % x y =
-            __rem x y
-
-        let head x =
-            __head x
-
-        let tail x =
-            __tail x
-
-        let fuse x y =
-            __fuse x y
-
-        let pair x y =
-            __pair x y
-
-        let litr x =
-            __litr x
-
-        let str x =
-            __str x
-
-        let words x =
-            __words x
-
-        let input x =
-            __input x
-
         let print x =
             __print x
 
-        let # x y =
-            head pair y x
-        
-            
         let main =
-            print 3
+            print "Hello World"
     """.trimIndent()
 
     println(parseFuncs(lex(s).iterator()).getOrThrow().prettyPrint())

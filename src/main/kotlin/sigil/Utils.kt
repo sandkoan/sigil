@@ -1,12 +1,17 @@
 package sigil
 
+/*
+* Custom error class that makes it easier to handle / comprehend Sigil's compiler errors.
+* */
 sealed class ParseError {
     data class Expected(val tok: Token) : Error()
     object ExpectedToken : Error()
     data class Unexpected(val tok: Token) : Error()
     data class CannotFind(val s: String) : Error()
 }
-
+/*
+* Simple utility method to pretty print the data structures used in the interpreter.
+* */
 fun Any.prettyPrint(): String {
     var indentLevel = 0
     val indentWidth = 4
