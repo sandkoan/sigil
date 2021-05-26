@@ -2,7 +2,7 @@
 
 An simple functional programming language, written in Kotlin.
 
-# Examples
+## Examples
 ```ocaml
 let factorial n =
 	if == 0 n
@@ -13,7 +13,7 @@ let main =
     print factorial 7
 ```
 
-# To Do
+## To Do
 - [x] function defintions
 - [ ] if statements
 - [ ] monadic IO
