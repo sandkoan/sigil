@@ -15,6 +15,7 @@ fun main(args: Array<String>) {
 }
 
 fun usage() = println("Usage: sigil [file]")
+
 /*
 * For on the fly evaluation of code, a REPL. Unfortunately, it is quite tempermental,
 * and thus needs some work to make it more ergonomic and viable.
