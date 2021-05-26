@@ -56,7 +56,7 @@ sealed class Value {
                     }
                     */
 
-                    return Result.failure(Error("Not a valid sigil.Value"))
+                    return Result.failure(Error("Not a valid Value"))
                 }
             }
         }

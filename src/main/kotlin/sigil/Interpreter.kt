@@ -85,7 +85,7 @@ fun lex(code: String): List<Token> {
             }
         }
     }
-//        .also { println(it) }
+        .also { println(it) }
 }
 
 /*
@@ -253,7 +253,7 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
 
         funcDefs[name] = args.size
         funcs[name] = Func(args, parseExpr(tokens, args, funcDefs).getOrThrow())
-//        println(funcs.prettyPrint())
+        println(funcs.prettyPrint())
     }
 }
 
