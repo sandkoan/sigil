@@ -9,7 +9,6 @@ fun withPrelude(code: String): String = File("sigil/core.sig").readText(Charsets
 fun input(msg: String): Value {
     print(msg)
     System.out.flush()
-
     return Value.Str(readLine()!!.trim())
 }
 
@@ -71,7 +70,7 @@ fun lex(code: String): List<Token> {
             }
         }
     }
-        .also { println(it) }
+//        .also { println(it) }
 }
 
 fun eval(expr: Expr, funcs: Map<String, Func>, args: List<Value>): Value {
@@ -238,12 +237,11 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
                     when {
                         idx >= 0 -> Expr.Local(idx)
                         funcDefs[v.i] != null -> {
-                            println("function = ${v.i}")
                             val fArgs = funcDefs[v.i]!!
                             val params = mutableListOf<Expr>()
                             for (q in 0..fArgs) {
-                                println("params = $params")
-                                params.add(parseExpr(tokens, args, funcDefs).getOrThrow())
+                                if (tokens.hasNext())
+                                    params.add(parseExpr(tokens, args, funcDefs).getOrThrow())
                             }
                             Expr.Call(v.i, params)
                         }
@@ -257,23 +255,9 @@ fun parseExpr(tokens: Iterator<Token>, args: List<String>, funcDefs: Map<String,
     else Result.failure(ParseError.ExpectedToken)
 }
 
-/*
-By end, funcs is always empty, and funcDefs looks like:
-{
-    "main": 0,
-    "print": 1,
-    "+": 2,
-}
-
-let print x = <body>
-let + x y = <body>
-let main = <body>
-Our problem is with calling non native functions.
-*/
 fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
     val funcs = hashMapOf<String, Func>()
     val funcDefs = hashMapOf<String, Int>()
-
     val ids = mutableListOf<String>()
     val l = mutableListOf<Token>()
 
@@ -292,13 +276,13 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
         }
     }
 
-    println(funcDefs)
     val tokens = l.iterator()
 
     while (true) {
         if (tokens.hasNext()) {
             when (tokens.next()) {
-                is Token.Fn -> { }
+                is Token.Fn -> {
+                }
                 else -> return Result.success(funcs)
             }
         } else return Result.success(funcs)
@@ -313,7 +297,6 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
         }
 
         val args = mutableListOf<String>()
-
         while (true) {
             if (tokens.hasNext()) {
                 when (val s = tokens.next()) {
@@ -326,33 +309,65 @@ fun parseFuncs(tokens: Iterator<Token>): Result<Map<String, Func>> {
             }
         }
 
-        println("Before: ")
-        println(args)
-        println(funcs)
-
         funcDefs[name] = args.size
         funcs[name] = Func(args, parseExpr(tokens, args, funcDefs).getOrThrow())
-
-        println("After: ")
-        println(args)
-        println(funcs)
-
-        println("*****************")
     }
 }
 
 fun main() {
     val s = """
+        let == x y =
+            __eq x y
+
+        let + x y =
+            __add x y
+
+        let neg x =
+            __neg x
+
+        let * x y =
+            __mul x y
+
+        let / x y =
+            __div x y
+
+        let % x y =
+            __rem x y
+
+        let head x =
+            __head x
+
+        let tail x =
+            __tail x
+
+        let fuse x y =
+            __fuse x y
+
+        let pair x y =
+            __pair x y
+
+        let litr x =
+            __litr x
+
+        let str x =
+            __str x
+
+        let words x =
+            __words x
+
+        let input x =
+            __input x
+
         let print x =
             __print x
 
-        let printMod x y =
-            print __rem x y
-
-        let main =
-            printMod 10 3
+        let # x y =
+            head pair y x
         
+            
+        let main =
+            print 3
     """.trimIndent()
 
-    println(parseFuncs(lex(s).iterator()).getOrThrow())
+    println(parseFuncs(lex(s).iterator()).getOrThrow().prettyPrint())
 }
