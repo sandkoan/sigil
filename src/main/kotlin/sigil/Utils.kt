@@ -35,7 +35,7 @@ fun Any.prettyPrint(): String {
             }
             ',' -> {
                 sb.appendLine(char).append(padding())
-                // ignore space after comma as we have added a newline
+                // Ignore space after comma as we have added a newline
                 val nextChar = toString.getOrElse(i + 1) { char }
                 if (nextChar == ' ') i++
             }
