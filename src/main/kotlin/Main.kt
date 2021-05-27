@@ -22,6 +22,7 @@ fun prompt() {
     System.out.flush()
 
     var line = readLine()
+
     // Lex input from the user, convert to iterator, and pass to parseFuncs(),
     // which generates a Map with the name of each function, and the Expr
     // the function evaluates to. If a main function exists, evaluate it, else do nothing.
@@ -29,7 +30,11 @@ fun prompt() {
     // (a clean state).
     while (true) {
         run {
-            val tokens = lex(withPrelude(line!!))
+            val tokens = lex(
+//                withPrelude(
+                    line!!
+//                )
+            )
             parseFuncs(tokens.iterator()).map { funcs ->
                 funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
             }.also {
