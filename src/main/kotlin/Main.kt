@@ -3,24 +3,21 @@ import java.io.File
 import java.io.FileNotFoundException
 
 fun main(args: Array<String>) {
-/*
     when {
         args.isEmpty() -> prompt()
         args.size == 1 -> exec(args[0])
         else -> usage()
     }
-*/
-    val fname = "C:\\Users\\govin\\IdeaProjects\\sigil\\src\\main\\kotlin\\sigil\\hello.sig"
-    exec(fname)
 }
 
 fun usage() = println("Usage: sigil [file]")
+
 /*
 * For on the fly evaluation of code, a REPL. Unfortunately, it is quite tempermental,
 * and thus needs some work to make it more ergonomic and viable.
 * */
 fun prompt() {
-    println("Welcom to the Sigil prompt.")
+    println("Welcome to the Sigil prompt.")
     println("The Prelude is imported by default.")
     System.out.flush()
 
@@ -52,7 +49,7 @@ fun prompt() {
 * Execute code from a file - other than that, mostly like the prompt.
 * */
 fun exec(fname: String) {
-    val code  = File(fname).let {
+    val code = File(fname).let {
         if (it.canRead())
             it.readText(Charsets.UTF_8)
         else
@@ -65,7 +62,7 @@ fun exec(fname: String) {
     run {
         parseFuncs(lex(
 //            withPrelude(
-                code
+            code
 //            )
         ).iterator()).map { funcs ->
             funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
