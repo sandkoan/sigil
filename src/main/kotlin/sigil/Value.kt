@@ -24,6 +24,7 @@ sealed class Value {
     object Null : Value() {
         override fun toString(): String = "null"
     }
+
     /*
     * Converts from a string value to a Sigil atom ("Value") without using too many custom defined values.
     * Sigil atoms are really just wrappers around Kotlin datatypes, which makes it easier to convert and manipulate them.
@@ -38,8 +39,7 @@ sealed class Value {
                 else -> {
                     try {
                         return Result.success(Num(s.toDouble()))
-                    } catch (e: NumberFormatException) {
-                    }
+                    } catch (e: NumberFormatException) { }
 
                     if (s.indexOf('"') == 0 && s.lastIndexOf('"') == s.length - 1 && s.count { it == '"' } == 2) {
 //                        return Result.success(Str(s.substring(1)))

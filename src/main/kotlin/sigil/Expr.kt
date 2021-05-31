@@ -48,7 +48,6 @@ sealed class Token {
     }
 
     object Input : Token() {
-
         override fun toString(): String = "Input"
     }
 
@@ -86,6 +85,10 @@ sealed class Token {
 
     object LessEq : Token() {
         override fun toString(): String = "LessEq"
+    }
+
+    object Indent : Token() {
+        override fun toString(): String = "Indent"
     }
 
     data class Ident(val i: String) : Token()

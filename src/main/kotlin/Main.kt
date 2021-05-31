@@ -23,11 +23,13 @@ fun prompt() {
 
     var line = readLine()
 
-    // Lex input from the user, convert to iterator, and pass to parseFuncs(),
-    // which generates a Map with the name of each function, and the Expr
-    // the function evaluates to. If a main function exists, evaluate it, else do nothing.
-    // Additionally, evaluate the main function assuming that no previous function was defined
-    // (a clean state).
+    /*
+    * Lex input from the user, convert to iterator, and pass to parseFuncs(),
+    * which generates a Map with the name of each function, and the Expr
+    * the function evaluates to. If a main function exists, evaluate it, else do nothing.
+    * Additionally, evaluate the main function assuming that no previous function was defined
+    * (a clean state).
+    */
     while (true) {
         run {
             val tokens = lex(
@@ -61,9 +63,11 @@ fun exec(fname: String) {
             throw FileNotFoundException("Could not open file '$fname'")
     }
 
-    // Lex input from the user, convert to iterator, and pass to parseFuncs(),
-    // which generates a Map with the name of each function, and the Expr
-    // the function evaluates to. If a main function exists, evaluate it, else do nothing.
+    /*
+    * Lex input from the user, convert to iterator, and pass to parseFuncs(),
+    * which generates a Map with the name of each function, and the Expr
+    * the function evaluates to. If a main function exists, evaluate it, else do nothing.
+    * */
     run {
         parseFuncs(lex(
 //            withPrelude(

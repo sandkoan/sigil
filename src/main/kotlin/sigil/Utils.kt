@@ -9,6 +9,7 @@ sealed class ParseError {
     data class Unexpected(val tok: Token) : Error()
     data class CannotFind(val s: String) : Error()
 }
+
 /*
 * Simple utility method to pretty print the data structures used in the interpreter.
 * */
