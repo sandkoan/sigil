@@ -34,14 +34,14 @@ fun prompt() {
         run {
             val tokens = lex(
 //                withPrelude(
-                    line!!
+                line!!
 //                )
             )
             parseFuncs(tokens.iterator()).map { funcs ->
                 funcs["main"]?.let { eval(it.expr, funcs, mutableListOf()) } ?: Value.Null
             }.also {
                 parseExpr(tokens.iterator(), mutableListOf(), hashMapOf()).map { expr ->
-                    { eval(expr, hashMapOf(), mutableListOf()) }
+                    eval(expr, hashMapOf(), mutableListOf())
                 }
             }
         }
