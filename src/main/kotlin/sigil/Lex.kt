@@ -1,5 +1,6 @@
 package sigil
 
+import exec
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -17,7 +18,6 @@ fun words(s: String): List<String> {
                 inStr = !inStr
                 sb.append(c)
             }
-            c == '\t' -> if (inStr) sb.append(c) else words.add(c.toString())
             c.isWhitespace() -> if (inStr) {
                 sb.append(c)
             } else {
@@ -30,18 +30,17 @@ fun words(s: String): List<String> {
     }
 
     if (sb.isNotEmpty())
-        words.add(sb.toString())
+        words.add(sb.toString().trim())
 
     return words
 }
 
 /*
-* Maps the split words from `words()` to tokens (either native identifiers, or nonnative).
+* Function that maps the split words from `words` to tokens (either native identifiers, or nonnative).
 * */
 fun lex(code: String): List<Token> {
     return words(code).map {
         when (it) {
-            "\t" -> Token.Indent
             "let" -> Token.Fn
             "=" -> Token.Is
             "if" -> Token.If
@@ -78,7 +77,7 @@ fun main() {
         if (it.canRead())
             it.readText(Charsets.UTF_8)
         else
-            throw FileNotFoundException("Could not open file '$fname'")
+            throw FileNotFoundException("Could not open file `$fname`")
     }
     lex(code)
 }

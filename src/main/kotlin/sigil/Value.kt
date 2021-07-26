@@ -27,7 +27,7 @@ sealed class Value {
 
     /*
     * Converts from a string value to a Sigil atom ("Value") without using too many custom defined values.
-    * Sigil atoms are really just wrappers around Kotlin datatypes, which makes it easier to convert and manipulate them.
+    * Sigil atoms are really just wrappers around Kotlin data types, which makes it easier to convert and manipulate them.
     * */
     companion object {
         fun of(s: String): Result<Value> {
@@ -56,7 +56,7 @@ sealed class Value {
                     }
                     */
 
-                    return Result.failure(Error("Not a valid Value"))
+                    return Result.failure(Exception("Not a valid Value"))
                 }
             }
         }

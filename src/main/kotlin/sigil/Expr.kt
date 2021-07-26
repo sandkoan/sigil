@@ -48,6 +48,7 @@ sealed class Token {
     }
 
     object Input : Token() {
+
         override fun toString(): String = "Input"
     }
 
@@ -87,16 +88,12 @@ sealed class Token {
         override fun toString(): String = "LessEq"
     }
 
-    object Indent : Token() {
-        override fun toString(): String = "Indent"
-    }
-
     data class Ident(val i: String) : Token()
     data class Value(val v: Val) : Token()
 }
 
 /*
-* Recursively defined `Expr` data type is what Values are combined into.
+* Recursively defined `Expr` data type is what `Values` are combined into.
 * They are made up of native and nonnative function calls.
 * */
 sealed class Expr {

@@ -1,2 +1,2 @@
 let main =
-	10
+	__print 10

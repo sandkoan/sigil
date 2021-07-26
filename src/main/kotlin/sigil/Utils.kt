@@ -4,10 +4,10 @@ package sigil
 * Custom error class that makes it easier to handle / comprehend Sigil's compiler errors.
 * */
 sealed class ParseError {
-    data class Expected(val tok: Token) : Error()
-    object ExpectedToken : Error()
-    data class Unexpected(val tok: Token) : Error()
-    data class CannotFind(val s: String) : Error()
+    data class Expected(val tok: Token) : Exception()
+    object ExpectedToken : Exception()
+    data class Unexpected(val tok: Token) : Exception()
+    data class CannotFind(val s: String) : Exception()
 }
 
 /*
