@@ -2,7 +2,7 @@
 
 An simple functional programming language, written in Kotlin.
 
-[Demo] (https://www.youtube.com/watch?v=h87cfyMY-ZA)
+[Demo](https://www.youtube.com/watch?v=h87cfyMY-ZA)
 
 ## Examples
 ```ocaml
