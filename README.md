@@ -15,7 +15,9 @@ let main =
     print factorial 7
 ```
 
+<!--- 
 ## To Do
 - [x] function defintions
 - [ ] if statements
 - [ ] monadic IO
+-->
